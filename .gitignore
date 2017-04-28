@@ -1,0 +1,11 @@
+*.iml
+
+.idea/
+common/
+netflow/
+mixjobs/
+application/target
+jobs/target
+jobs/errors.md
+testjob/target
+
