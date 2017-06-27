@@ -6,7 +6,7 @@
 
     <groupId>com.hxm.earlgrey</groupId>
     <artifactId>modules</artifactId>
-    <version>0.3</version>
+    <version>1.0</version>
     <packaging>pom</packaging>
 
     <modules>
