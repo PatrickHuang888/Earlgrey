@@ -58,8 +58,8 @@ class FlowQueryJob(sqlContext: SQLContext, flowDataLoader: FlowDataLoader) {
           val time = dateFormat.format(new Date(row.getLong(4)))
           val flow = new Flow(InetAddress.getByAddress(row.getAs[Array[Byte]](0)).getHostAddress,
             InetAddress.getByAddress(row.getAs[Array[Byte]](1)).getHostAddress,
-            row.getInt(2), row.getInt(3), Ip4Protocol(row.getByte(6)).toString, time,
-            row.getInt(5), row.getInt(7), row.getInt(8))
+            row.getInt(2), row.getInt(3), time, row.getInt(5), Ip4Protocol(row.getByte(6)).toString,
+            row.getInt(7), row.getInt(8))
 
           remoteRepository.insertFlow(s"FlowQuery-$jobId", flow)
 

@@ -10,8 +10,6 @@
     <packaging>pom</packaging>
 
     <modules>
-
-        <!--<module>common</module>-->
         <module>application</module>
         <module>jobs</module>
         <module>testjob</module>
