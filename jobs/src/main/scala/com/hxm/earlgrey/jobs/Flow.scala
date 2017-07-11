@@ -51,6 +51,24 @@ object FlowData {
 
 case class Flow(srcAddress: String, dstAddress: String, srcPort: Int, dstPort: Int,
                 time: String, duration: Int, protocol: String, bytes: Int, packets: Int)
+object Flow {
+
+  implicit class FlowConverter(flow: Flow) {
+    def toDoc(): Document = {
+      Document("srcAddress" -> flow.srcAddress, "dstAddress" -> flow.dstAddress,
+        "srcPort" -> flow.srcPort, "dstPort" -> flow.dstPort, "protocol" -> flow.protocol,
+        "time" -> flow.time, "duration" -> flow.duration, "bytes" -> flow.bytes, "packets" -> flow.packets)
+    }
+  }
+
+  def apply(jsonDoc: String): Flow = {
+    val doc= Document(jsonDoc)
+    new Flow(doc.getString("srcAddress"), doc.getString("dstAddress"), doc.getInteger("srcPort"),
+      doc.getInteger("dstPort"), doc.getString("time"), doc.getInteger("duration"),
+      doc.getString("protocol"), doc.getInteger("bytes"), doc.getInteger("packets"))
+  }
+}
+
 
 case class Ip4Protocol(protocol: Byte, name: String) {
   override def toString: String = name
@@ -72,14 +90,3 @@ object Ip4Protocol {
 }
 
 
-object Flow {
-
-  implicit class FlowConverter(flow: Flow) {
-    def toDoc(): Document = {
-      Document("srcAddress" -> flow.srcAddress, "dstAddress" -> flow.dstAddress,
-        "srcPort" -> flow.srcPort, "dstPort" -> flow.dstPort, "protocol" -> flow.protocol,
-        "time" -> flow.time, "duration" -> flow.duration, "bytes" -> flow.bytes, "packets" -> flow.packets)
-    }
-  }
-
-}

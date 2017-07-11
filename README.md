@@ -31,7 +31,7 @@ Command usage
 Elastic server address setting in  application.properties
 
 * With writing netflow data to ealstic server, you can query the network packet flow in real time
-For example, query the packets ip address "122.166.26.132" sent out.
+ For example, query the packets ip address "122.166.26.132" sent out.
  ```console
  curl -XPOST 'hxm-server:9200/earlgrey/_search?pretty' -H 'Content-Type: application/json' -d'
  {
@@ -91,3 +91,7 @@ For example, query the packets ip address "122.166.26.132" sent out.
         },
 ...
  ```
+ 
+ v 0.4.1 1,Jul,2017
+ Compute max dataflow(socket size) between two ip's on elastic search by Spark plugin provided by elastic,
+ but it is too slow, it's about orders of magnitude slower than computation on parquet data file.
