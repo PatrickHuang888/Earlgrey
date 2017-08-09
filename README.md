@@ -30,7 +30,7 @@ Command usage
 ```
 Elastic server address setting in  application.properties
 
-* With writing netflow data to ealstic server, you can query the network packet flow in real time
+* With writing netflow data to elastic server, you can query the network packet flow in real time
  For example, query the packets ip address "122.166.26.132" sent out.
  ```console
  curl -XPOST 'hxm-server:9200/earlgrey/_search?pretty' -H 'Content-Type: application/json' -d'
@@ -92,6 +92,53 @@ Elastic server address setting in  application.properties
 ...
  ```
  
- v 0.4.1 1,Jul,2017
+ ## v 0.4.1 1,Jul,2017
  Compute max dataflow(socket size) between two ip's on elastic search by Spark plugin provided by elastic,
  but it is too slow, it's about orders of magnitude slower than computation on parquet data file.
+ 
+ Command
+ ```console
+ $SPARK_HOME/bin/spark-submit --class com.hxm.earlgrey.jobs.ActiveFlow --jars /home/hxm/.m2/repository/org/elasticsearch/elasticsearch-spark-20_2.11/5.2.2/elasticsearch-spark-20_2.11-5.2.2.jar,
+ /home/hxm/.m2/repository/com/typesafe/config/1.2.1/config-1.2.1.jar,
+ /home/hxm/.m2/repository/com/typesafe/scala-logging/scala-logging_2.11/3.5.0/scala-logging_2.11-3.5.0.jar,
+ /home/hxm/.m2/repository/org/mongodb/scala/mongo-scala-driver_2.11/2.0.0/mongo-scala-driver_2.11-2.0.0.jar,
+ /home/hxm/.m2/repository/org/mongodb/bson/3.4.2/bson-3.4.2.jar,
+ /home/hxm/.m2/repository/org/mongodb/scala/mongo-scala-bson_2.11/2.0.0/mongo-scala-bson_2.11-2.0.0.jar
+  --driver-cores 1 --executor-cores 2 --master spark://hxm-desktop:7077 /opt/Earlgrey/jobs/target/earlgrey-jobs-0.4.jar -print 10
+ ```
+ 
+ ## v0.5.0, August,9,2017
+ After testing with writing/reading netflow data to Elastic by Spark, I found it was too slow. And I just took a peek at source code
+ of Elastic-Spark-connector, it seems like just wrapping some REST API. It's totally un-workable analyse data with Spark on elastic.
+ 
+ I have modified code to writing and reading to HBase, it seems good. It took about 5 minutes write 20 million record with my 2 pc over network. 
+ And class Active Flow found 2 most mass traffic ip spent about 1.x minutes also running local spark and HBase on another pc.
+ 
+```console
+17/08/09 14:02:53 INFO Remoting: Remoting started; listening on addresses :[akka.tcp://sparkDriverActorSystem@172.20.69.136:37156]
+(122.166.160.234,122.166.232.162,403444780)                                     
+(107.192.97.232,122.166.78.222,249112955)
+(122.166.169.77,122.166.66.217,229092274)
+(122.166.177.93,122.166.73.202,222714536)
+(122.166.70.159,122.221.8.72,158108918)
+(122.166.253.19,175.231.71.102,142511334)
+(122.166.78.254,3.138.65.12,120565918)
+(122.166.215.64,122.166.251.246,119073456)
+(122.166.253.19,175.231.71.107,103701643)
+(122.166.68.25,122.166.82.141,90000555)
+17/08/09 14:04:08 INFO RemoteActorRefProvider$RemotingTerminator: Shutting down remote daemon.
+```
+I have changed pom.xml package a uber.jar due to many hbase-client package dependency, and need change Spark 'conf/spark-env.sh'
+add some hbase class path
+```console
+export SPARK_CLASSPATH=$SPARK_CLASSPATH:/u01/apache/hbase/hbase-2.0.0-alpha-1/lib/*
+```
+one more thing, I used HBase 2.0.0-alpha-1 with hbase-spark built-in.  
+Running command for find 2 most traffic ip:
+```console
+/opt/Spark/spark/bin/spark-submit --executor-memory 2G --executor-cores 1  --class com.hxm.earlgrey.jobs.ActiveFlow    /opt/Earlgrey/jobs/target/earlgrey-jobs-0.4.jar -print 10
+```
+Running command for write netflow data:
+```console
+/opt/Spark/spark/bin/spark-submit --executor-memory 2G --executor-cores 1 --conf 'spark.driver.extraJavaOptions=-Djava.library.path=/u01/jnetpcap-1.3.0' --conf 'spark.executor.extraJavaOptions=-Djava.library.path=/u01/jnetpcap-1.3.0'   --class com.hxm.earlgrey.jobs.PCapFileReader   /opt/Earlgrey/jobs/target/earlgrey-jobs-0.4.jar /u01/netflow/data/netflow
+```
