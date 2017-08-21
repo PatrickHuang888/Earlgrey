@@ -142,3 +142,16 @@ Running command for write netflow data:
 ```console
 /opt/Spark/spark/bin/spark-submit --executor-memory 2G --executor-cores 1 --conf 'spark.driver.extraJavaOptions=-Djava.library.path=/u01/jnetpcap-1.3.0' --conf 'spark.executor.extraJavaOptions=-Djava.library.path=/u01/jnetpcap-1.3.0'   --class com.hxm.earlgrey.jobs.PCapFileReader   /opt/Earlgrey/jobs/target/earlgrey-jobs-0.4.jar /u01/netflow/data/netflow
 ```
+
+## v0.5.1 21,August, 2017
+1. Refactor transforming function to main method to make SparkContext can be inited from spark-submit command.
+2. Query flow from HBase with or without HBase Filter   
+After some research on Elastic data saving from Spark, I found bottlenecks are in Elastic io, it should be Elastic indexing. That should be the 
+problem that cannot be solved, because Elastic using Lucene, that a space change time solution, indexing is the must step.
+Query specific flow from HBase's row key, then it tooks a bout 1.x second totally spark-job, that means quickly.
+If searching use HBase filter, it took about 1x seconds. Searching from Spark, it took 2x seconds.  
+
+Query command
+```
+/opt/Spark/spark/bin/spark-submit --executor-memory 2G --executor-cores 1  --class com.hxm.earlgrey.jobs.FlowQuery --master local[*] /opt/Earlgrey/jobs/target/earlgrey-jobs-0.4.jar 122.166.26.132 false
+```
